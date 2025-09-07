@@ -1,5 +1,6 @@
-#ifndef CHATSERVER_HPP
-#define CHATSERVER_HPP
+#ifndef CHATSERVICE_HPP
+#define CHATSERVICE_HPP
+
 #include <muduo/net/TcpConnection.h>
 #include <unordered_map>
 #include <functional>
