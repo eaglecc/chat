@@ -4,10 +4,9 @@
 
 // 数据库配置信息
 static string server = "127.0.0.1";
-static string user = "root";
-static string password = "123456";
+static string user = "chengyc";
+static string password = "root";
 static string dbname = "chat";
-
 
 MySQL::MySQL()
 {
@@ -28,6 +27,11 @@ bool MySQL::connect()
     if (p != nullptr)
     {
         mysql_query(_conn, "set names gbk");
+        LOG_INFO << "MySQL Connect Success!";
+    }
+    else
+    {
+        LOG_ERROR << "MySQL Connect Failed!";
     }
     return p;
 }
@@ -39,6 +43,7 @@ bool MySQL::update(string sql)
         LOG_ERROR << "MySQL update error: " << mysql_error(_conn);
         return false;
     }
+    LOG_INFO << "MySQL update success!";
     return true;
 }
 
@@ -50,4 +55,9 @@ MYSQL_RES *MySQL::query(string sql)
         return nullptr;
     }
     return mysql_store_result(_conn);
+}
+
+MYSQL *MySQL::getConnection()
+{
+    return _conn;
 }

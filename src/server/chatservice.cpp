@@ -1,6 +1,7 @@
 #include "chatservice.hpp"
 #include "public.hpp"
 #include <muduo/base/Logging.h>
+#include <user.hpp>
 
 using namespace muduo;
 
@@ -20,7 +21,8 @@ MsgHandler ChatService::getHandler(int msgid)
         // 如果直接用_msgHandlerMap[msgid]，如果msgid没有对应的处理器，会自动添加一个空的处理器
         return it->second;
     }
-    return [=](const TcpConnectionPtr &conn, json &js, Timestamp time){
+    return [=](const TcpConnectionPtr &conn, json &js, Timestamp time)
+    {
         LOG_ERROR << "msgid:" << msgid << " can not find handler!";
     };
 }
@@ -39,5 +41,27 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
 
 void ChatService::reg(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
-    LOG_INFO << "do register service!!!"; 
+    std::string name = js["name"];
+    std::string password = js["password"];
+    User user;
+    user.setName(name);
+    user.setPassword(password);
+
+    if (_userModel.insert(user))
+    {
+        // 注册成功
+        json response;
+        response["msgId"] = EnMsgType::REG_MSG_ACK;
+        response["id"] = user.getId();
+        response["errorno"] = 0;
+        conn->send(response.dump());
+    }
+    else
+    {
+        // 注册失败
+        json response;
+        response["msgId"] = EnMsgType::REG_MSG_ACK;
+        response["errorno"] = 1;
+        conn->send(response.dump());
+    }
 }
