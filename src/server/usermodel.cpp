@@ -22,3 +22,45 @@ bool UserModel::insert(User &user)
     }
     return false;
 }
+
+// 根据用户id查询用户信息
+User UserModel::query(int id)
+{
+    char sql[1024] = {0};
+    sprintf(sql, "select * from user where id=%d", id);
+    MySQL mysql;
+    if (mysql.connect())
+    {
+        MYSQL_RES *res = mysql.query(sql);
+        if (res)
+        {
+            MYSQL_ROW row = mysql_fetch_row(res);
+            if (row)
+            {
+                User user;
+                user.setId(atoi(row[0]));
+                user.setName(row[1]);
+                user.setPassword(row[2]);
+                user.setState(row[3]);
+                mysql_free_result(res);
+                return user;
+            }
+        }
+    }
+    return User();
+}
+
+// 更新用户的状态信息
+bool UserModel::updateState(const User &user)
+{
+    char sql[1024] = {0};
+    sprintf(sql, "update user set state='%s' where id=%d", user.getState().c_str(), user.getId());
+    MySQL mysql;
+    if (mysql.connect())
+    {
+        if (mysql.update(sql)){
+            return true;
+        }
+    }
+    return false;
+}

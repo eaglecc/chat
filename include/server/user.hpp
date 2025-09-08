@@ -23,10 +23,10 @@ public:
     void setState(const std::string &newState) { state = newState; }
 
 private:
-    int id;
-    std::string name;
-    std::string password;
-    std::string state{"offline"};
+    int id {-1};
+    std::string name {""};
+    std::string password {""};
+    std::string state {"offline"};
 };
 
 #endif

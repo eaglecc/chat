@@ -36,7 +36,43 @@ ChatService::ChatService()
 
 void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
-    LOG_INFO << "do login service!!!";
+    int id = js["id"].get<int>();
+    std::string password = js["password"];
+
+    User user = _userModel.query(id);
+    if (user.getId() == id && user.getPassword() == password)
+    {
+        if (user.getState() == "online")
+        {
+            // 该用户已经登录，不允许重复登录
+            json response;
+            response["msgId"] = EnMsgType::LOGIN_MSG_ACK;
+            response["errorno"] = 2; // 2表示该用户已经登录
+            response["errmsg"] = "该账号已经登录，请重新输入其他账号!";
+            conn->send(response.dump());
+            return;
+        }
+        
+        // 登录成功
+        user.setState("online");
+        _userModel.updateState(user);
+
+        json response;
+        response["msgId"] = EnMsgType::LOGIN_MSG_ACK;
+        response["id"] = user.getId();
+        response["name"] = user.getName();
+        response["errorno"] = 0;
+        conn->send(response.dump());
+    }
+    else
+    {
+        // 登录失败
+        json response;
+        response["msgId"] = EnMsgType::LOGIN_MSG_ACK;
+        response["errorno"] = 1; // 1表示账号或密码错误
+        response["errmsg"] = "账号或密码错误!";
+        conn->send(response.dump());
+    }
 }
 
 void ChatService::reg(const TcpConnectionPtr &conn, json &js, Timestamp time)
