@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <functional>
 #include <string>
+#include <mutex>
 #include "json.hpp"
 #include "usermodel.hpp"
 
@@ -34,6 +35,11 @@ private:
 
     // 消息ID和其对应的业务处理方法
     unordered_map<int, MsgHandler> _msgHandlerMap;
+
+    // 存储在线用户的通信连接
+    unordered_map<int, TcpConnectionPtr> _userConnMap;
+
+    mutex _connMutex;
 
     // 数据操作类对象
     UserModel _userModel;

@@ -53,6 +53,12 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
             return;
         }
         
+        // 记录用户连接信息
+        {    
+            std::lock_guard<mutex> lock(_connMutex);
+            _userConnMap.insert({id, conn});
+        }
+
         // 登录成功
         user.setState("online");
         _userModel.updateState(user);
