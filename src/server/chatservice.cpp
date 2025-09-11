@@ -32,8 +32,11 @@ ChatService::ChatService()
     // 注册消息以及对应的Handler
     _msgHandlerMap.insert({EnMsgType::LOGIN_MSG, std::bind(&ChatService::login, this, _1, _2, _3)});
     _msgHandlerMap.insert({EnMsgType::REG_MSG, std::bind(&ChatService::reg, this, _1, _2, _3)});
+    _msgHandlerMap.insert({EnMsgType::ONE_CHAT_MSG, std::bind(&ChatService::oneChat, this, _1,_2,_3)});
 }
 
+
+// 登录
 void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
     int id = js["id"].get<int>();
@@ -81,6 +84,7 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
     }
 }
 
+// 注册
 void ChatService::reg(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
     std::string name = js["name"];
@@ -106,6 +110,25 @@ void ChatService::reg(const TcpConnectionPtr &conn, json &js, Timestamp time)
         response["errorno"] = 1;
         conn->send(response.dump());
     }
+}
+
+// 一对一聊天
+void ChatService::oneChat(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    int toid = js["to"].get<int>();
+    {
+        lock_guard<mutex> lock(_connMutex);
+        auto it = _userConnMap.find(toid);
+        if (it != _userConnMap.end())
+        {
+            // toid在线，转发消息
+            it->second->send(js.dump());
+            
+            return;
+        }
+    }
+    // toid不在线，存储离线消息
+
 }
 
 void ChatService::clientCloseException(const TcpConnectionPtr &conn)
