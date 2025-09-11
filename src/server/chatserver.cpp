@@ -32,8 +32,8 @@ void ChatServer::onConnection(const TcpConnectionPtr &conn)
     // 客户端断开连接
     if (!conn->connected())
     {
+        ChatService::instance()->clientCloseException(conn);
         conn->shutdown(); // 关闭连接，释放socketfd资源
-        // _loop->quit(); // 退出事件循环
     }
     
 }

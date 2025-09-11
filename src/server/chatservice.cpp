@@ -107,3 +107,32 @@ void ChatService::reg(const TcpConnectionPtr &conn, json &js, Timestamp time)
         conn->send(response.dump());
     }
 }
+
+void ChatService::clientCloseException(const TcpConnectionPtr &conn)
+{
+    // 获取用户ID
+    int userId = -1;
+    for (const auto &[id, userConn] : _userConnMap)
+    {
+        if (userConn == conn)
+        {
+            userId = id;
+            break;
+        }
+    }
+    // 从_userConnMap删除用户的连接信息
+    if (userId != -1)
+    {
+        {
+            // 用户在线，进行下线处理
+            std::lock_guard<std::mutex> lock(_connMutex);
+            _userConnMap.erase(userId);
+        }
+        User user;
+        user.setId(userId);
+        // 更新用户的状态信息
+        user.setState("offline");
+        _userModel.updateState(user);
+    }
+
+}
