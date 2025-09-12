@@ -170,3 +170,9 @@ void ChatService::clientCloseException(const TcpConnectionPtr &conn)
     }
 
 }
+
+// 服务器异常退出
+void ChatService::reset()
+{
+    _userModel.resetState();
+}

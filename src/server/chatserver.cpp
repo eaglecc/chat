@@ -32,7 +32,7 @@ void ChatServer::onConnection(const TcpConnectionPtr &conn)
     // 客户端断开连接
     if (!conn->connected())
     {
-        ChatService::instance()->clientCloseException(conn);
+        ChatService::instance()->clientCloseException(conn); // 连接异常
         conn->shutdown(); // 关闭连接，释放socketfd资源
     }
     

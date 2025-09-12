@@ -36,6 +36,9 @@ public:
 
     // 处理客户端异常退出
     void clientCloseException(const TcpConnectionPtr &conn);
+    // 重置服务，服务器异常退出后，重置用户的状态信息
+    void reset();
+
 private:
     ChatService(/* args */);
 
