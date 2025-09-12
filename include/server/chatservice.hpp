@@ -8,6 +8,7 @@
 #include <mutex>
 #include "json.hpp"
 #include "usermodel.hpp"
+#include "offlinemessagemodel.hpp"
 
 using namespace std;
 using namespace muduo;
@@ -48,6 +49,9 @@ private:
 
     // 数据操作类对象
     UserModel _userModel;
+
+    // 离线消息业务
+    OfflineMsgModel _offlineMsgModel;
 };
 
 
