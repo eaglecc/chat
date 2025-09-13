@@ -3,6 +3,7 @@
 #include <muduo/base/Logging.h>
 #include <user.hpp>
 #include <vector>
+#include "group.hpp"
 
 using namespace muduo;
 
@@ -35,6 +36,9 @@ ChatService::ChatService()
     _msgHandlerMap.insert({EnMsgType::REG_MSG, std::bind(&ChatService::reg, this, _1, _2, _3)});
     _msgHandlerMap.insert({EnMsgType::ONE_CHAT_MSG, std::bind(&ChatService::oneChat, this, _1, _2, _3)});
     _msgHandlerMap.insert({EnMsgType::ADD_FRIEND_MSG, std::bind(&ChatService::addFriend, this, _1, _2, _3)});
+    _msgHandlerMap.insert({EnMsgType::CREATE_GROUP_MSG, std::bind(&ChatService::createGroup, this, _1, _2, _3)});
+    _msgHandlerMap.insert({EnMsgType::ADD_GROUP_MSG, std::bind(&ChatService::addGroup, this, _1, _2, _3)});
+    _msgHandlerMap.insert({EnMsgType::GROUP_CHAT_MSG, std::bind(&ChatService::groupChat, this, _1, _2, _3)});
 }
 
 // 登录
@@ -166,6 +170,51 @@ void ChatService::addFriend(const TcpConnectionPtr &conn, json &js, Timestamp ti
     
     // 存储好友信息
     _friendModel.insert(userid, friendid);
+}
+
+// 创建群组
+void ChatService::createGroup(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    std::string groupName = js["groupname"];
+    std::string groupDesc = js["groupdesc"];
+    Group group(-1, groupName, groupDesc);
+    if (_groupModel.createGroup(group))
+    {
+        // 存储群组创建人信息
+        int userid = js["id"].get<int>();
+        _groupModel.addGroup(userid, group.getId(), "creator");
+    }
+}
+
+// 加入群组
+void ChatService::addGroup(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    int userid = js["id"].get<int>();
+    int groupid = js["groupid"].get<int>();
+    _groupModel.addGroup(userid, groupid, "normal");
+}
+
+// 群组聊天
+void ChatService::groupChat(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    int userid = js["id"].get<int>();
+    int groupid = js["groupid"].get<int>();
+    std::vector<int> useridVec = _groupModel.queryGroupsUsers(userid, groupid);
+    lock_guard<mutex> lock(_connMutex);
+    for(int id: useridVec)
+    {
+        auto it = _userConnMap.find(id);
+        if (it != _userConnMap.end())
+        {
+            // 转发群组消息
+            it->second->send(js.dump());
+        }
+        else
+        {
+            // 存储离线消息
+            _offlineMsgModel.insert(id, js.dump());
+        }
+    }
 }
 
 // 客户端异常退出
