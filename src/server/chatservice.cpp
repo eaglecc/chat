@@ -39,6 +39,7 @@ ChatService::ChatService()
     _msgHandlerMap.insert({EnMsgType::CREATE_GROUP_MSG, std::bind(&ChatService::createGroup, this, _1, _2, _3)});
     _msgHandlerMap.insert({EnMsgType::ADD_GROUP_MSG, std::bind(&ChatService::addGroup, this, _1, _2, _3)});
     _msgHandlerMap.insert({EnMsgType::GROUP_CHAT_MSG, std::bind(&ChatService::groupChat, this, _1, _2, _3)});
+    _msgHandlerMap.insert({EnMsgType::LOG_OUT_MSG, std::bind(&ChatService::logout, this, _1, _2, _3)});
 }
 
 // 登录
@@ -215,6 +216,24 @@ void ChatService::groupChat(const TcpConnectionPtr &conn, json &js, Timestamp ti
             _offlineMsgModel.insert(id, js.dump());
         }
     }
+}
+
+// 注销登录
+void ChatService::logout(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    int userId = js["id"].get<int>();
+    {
+        std::lock_guard<std::mutex> lock(_connMutex);
+        auto it = _userConnMap.find(userId);
+        if (it != _userConnMap.end())
+        {
+            _userConnMap.erase(it);
+        }
+    }
+    User user;
+    user.setId(userId);
+    user.setState("offline");
+    _userModel.updateState(user);
 }
 
 // 客户端异常退出

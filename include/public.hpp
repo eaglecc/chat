@@ -12,7 +12,7 @@ enum EnMsgType
     CREATE_GROUP_MSG, // 创建群组消息
     ADD_GROUP_MSG,   // 加入群组消息
     GROUP_CHAT_MSG,  // 群组聊天消息
-
+    LOG_OUT_MSG,     // 注销
 };
 
 #endif
