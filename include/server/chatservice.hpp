@@ -11,6 +11,7 @@
 #include "offlinemessagemodel.hpp"
 #include "friendmode.hpp"
 #include "groupmodel.hpp"
+#include "redis.hpp"
 
 using namespace std;
 using namespace muduo;
@@ -71,6 +72,9 @@ private:
 
     // 群组
     GroupModel _groupModel;
+
+    // redis操作对象
+    Redis _redis;
 };
 
 
